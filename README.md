@@ -109,7 +109,7 @@ README.md – Project documentation
 
 
 
-✍️ Author
+## ✍️ Author
 Puneeth Kumar B C
 
 GitHub: @Puni45
