@@ -62,23 +62,23 @@ The target variable is a **categorical label** representing growth suitability o
     'splitter': 'best'
   }
 
-##🧪 How to Use
+## 🧪 How to Use
 
 
-##Clone the repository:
+Clone the repository:
 
 git clone https://github.com/Puni45/greenml.git
 cd greenml
 
 
 
-##Install dependencies:
+Install dependencies:
 
 pip install -r requirements.txt
 
 
 
-##Run the notebook:
+Run the notebook:
 
 Open GreenML_Model.ipynb in Jupyter or Google Colab.
 
@@ -90,7 +90,7 @@ model = joblib.load("greenml_model.joblib")
 model.predict(new_data)
 
 
-##🔍 Sample Input Format
+🔍 Sample Input Format
 Preprocessed numerical values (after OneHotEncoding):
 
 
@@ -98,7 +98,7 @@ Preprocessed numerical values (after OneHotEncoding):
 
 Make sure your input matches the encoded format before prediction.
 
-##📦 Files in Repository
+📦 Files in Repository
 GreenML_Model.ipynb – Full model pipeline (EDA, preprocessing, training)
 
 greenml_model.joblib – Saved trained model
