@@ -125,5 +125,3 @@ Let me know if:
 - You want a badge (Colab, License, etc.)
 - You're hosting it with a demo
 - You need a `requirements.txt`
-
-I'll generate them accordingly.
