@@ -1,8 +1,8 @@
 {
   "version": 2,
   "functions": {
-    "api/app.py": {
-      "runtime": "python3"
+    "api/*.py": {
+      "runtime": "@vercel/python@3.9"
     }
   },
   "routes": [
