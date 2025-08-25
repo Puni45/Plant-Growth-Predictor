@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Health Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .input-section, .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .input-section:hover, .results-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .sensor-input {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .sensor-input:hover {
+            border-color: #4CAF50;
+            background: #f0f8f0;
+        }
+
+        .sensor-input label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .sensor-input input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .sensor-input input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+
+        .unit {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #4CAF50;
+        }
+
+        .health-status {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .healthy { color: #4CAF50; }
+        .diseased { color: #f44336; }
+        .warning { color: #ff9800; }
+
+        .confidence-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 5px;
+            transition: width 0.8s ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .recommendations {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .recommendation-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .sensor-analysis {
+            background: #e8f4fd;
+            border: 1px solid #b8daff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .analysis-title {
+            font-weight: bold;
+            color: #004085;
+            margin-bottom: 10px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #f44336;
+        }
+
+        .success {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #17a2b8;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .sensor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        .priority-critical { border-left-color: #dc3545; }
+        .priority-medium { border-left-color: #ffc107; }
+        .priority-low { border-left-color: #28a745; }
+        .priority-normal { border-left-color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 Plant Health Monitor</h1>
+            <p>Monitor your plant's health using advanced sensor data analysis</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">
+                    <span class="icon">📊</span>
+                    Sensor Data Input
+                </h2>
+                
+                <div class="sensor-grid" id="sensorGrid">
+                    <!-- Sensor inputs will be populated here -->
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn" onclick="testConnection()">
+                        🔗 Test Connection
+                    </button>
+                    <button class="btn" onclick="analyzePlant()">
+                        🔍 Analyze Plant Health
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadSampleData()">
+                        📝 Load Sample Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearInputs()">
+                        🗑️ Clear All
+                    </button>
+                </div>
+
+                <div id="inputStatus"></div>
+            </div>
+
+            <div class="results-section">
+                <h2 class="section-title">
+                    <span class="icon">📈</span>
+                    Analysis Results
+                </h2>
+
+                <div id="loadingState" class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing sensor data...</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        Processing with AI model
+                    </p>
+                </div>
+
+                <div id="resultsContent" style="display: none;">
+                    <div class="result-card" id="mainResult">
+                        <div class="health-status healthy" id="healthStatus">
+                            🌱 Plant Status Loading...
+                        </div>
+                        <p id="statusDescription">
+                            Analysis results will appear here
+                        </p>
+                        
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceBar" style="width: 0%"></div>
+                        </div>
+                        <p style="font-size: 0.9rem; color: #666;">
+                            Confidence: <span id="confidenceText">0%</span>
+                        </p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="healthScore">--</div>
+                            <div class="stat-label">Confidence</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="riskLevel">--</div>
+                            <div class="stat-label">Risk Level</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="priority">--</div>
+                            <div class="stat-label">Priority</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="analysisTime">--</div>
+                            <div class="stat-label">Analysis Time</div>
+                        </div>
+                    </div>
+
+                    <div class="sensor-analysis">
+                        <div class="analysis-title">📊 Sensor Data Analysis</div>
+                        <div id="sensorAnalysis">
+                            Raw sensor readings and processed features will be shown here
+                        </div>
+                    </div>
+
+                    <div class="recommendations">
+                        <div class="recommendation-title">💡 Recommendations</div>
+                        <ul id="recommendationsList">
+                            <li>Enter sensor data to get recommendations</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="noResults" style="text-align: center; color: #666; padding: 40px;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">📊</div>
+                    <p>Enter sensor data to see analysis results</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sensor configuration with expected ranges and units
+        const SENSORS = [
+            { name: 'Soil_Moisture', label: 'Soil Moisture', unit: '%', min: 0, max: 100, step: 0.1 },
+            { name: 'Ambient_Temperature', label: 'Ambient Temperature', unit: '°C', min: -10, max: 50, step: 0.1 },
+            { name: 'Soil_Temperature', label: 'Soil Temperature', unit: '°C', min: 0, max: 40, step: 0.1 },
+            { name: 'Humidity', label: 'Humidity', unit: '%', min: 0, max: 100, step: 0.1 },
+            { name: 'Light_Intensity', label: 'Light Intensity', unit: 'lux', min: 0, max: 1000, step: 1 },
+            { name: 'Soil_pH', label: 'Soil pH', unit: 'pH', min: 3, max: 10, step: 0.1 },
+            { name: 'Nitrogen_Level', label: 'Nitrogen Level', unit: 'mg/L', min: 0, max: 50, step: 0.1 },
+            { name: 'Phosphorus_Level', label: 'Phosphorus Level', unit: 'mg/L', min: 0, max: 50, step: 0.1 },
+            { name: 'Potassium_Level', label: 'Potassium Level', unit: 'mg/L', min: 0, max: 50, step: 0.1 },
+            { name: 'Chlorophyll_Content', label: 'Chlorophyll Content', unit: 'SPAD', min: 0, max: 60, step: 0.1 },
+            { name: 'Electrochemical_Signal', label: 'Electrochemical Signal', unit: 'V', min: 0, max: 2, step: 0.01 }
+        ];
+
+        let analysisStartTime = null;
+
+        // Initialize the sensor input grid
+        function initializeSensorGrid() {
+            const sensorGrid = document.getElementById('sensorGrid');
+            sensorGrid.innerHTML = '';
+
+            SENSORS.forEach(sensor => {
+                const sensorDiv = document.createElement('div');
+                sensorDiv.className = 'sensor-input';
+                
+                sensorDiv.innerHTML = `
+                    <label for="${sensor.name}">${sensor.label}</label>
+                    <input 
+                        type="number" 
+                        id="${sensor.name}" 
+                        name="${sensor.name}"
+                        min="${sensor.min}" 
+                        max="${sensor.max}" 
+                        step="${sensor.step}"
+                        placeholder="Enter ${sensor.label.toLowerCase()}"
+                    >
+                    <div class="unit">${sensor.unit}</div>
+                `;
+                
+                sensorGrid.appendChild(sensorDiv);
+            });
+        }
+
+        // Collect sensor data from inputs
+        function collectSensorData() {
+            const data = {};
+            let hasData = false;
+            let missingFields = [];
+
+            SENSORS.forEach(sensor => {
+                const input = document.getElementById(sensor.name);
+                const value = parseFloat(input.value);
+                
+                if (!isNaN(value)) {
+                    data[sensor.name] = value;
+                    hasData = true;
+                } else {
+                    missingFields.push(sensor.label);
+                }
+            });
+
+            return { data, hasData, missingFields };
+        }
+
+        // Validate sensor data ranges
+        function validateSensorData(data) {
+            const warnings = [];
+            
+            SENSORS.forEach(sensor => {
+                const value = data[sensor.name];
+                if (value !== undefined) {
+                    if (value < sensor.min || value > sensor.max) {
+                        warnings.push(`${sensor.label}: ${value}${sensor.unit} is outside expected range (${sensor.min}-${sensor.max}${sensor.unit})`);
+                    }
+                }
+            });
+
+            return warnings;
+        }
+
+        // Show input status messages
+        function showInputStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('inputStatus');
+            statusDiv.className = type;
+            statusDiv.innerHTML = message;
+            
+            // Auto-clear after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                    statusDiv.className = '';
+                }, 5000);
+            }
+        }
+
+        // Load sample data into inputs
+        async function loadSampleData() {
+            try {
+                showInputStatus('🔄 Loading sample data...', 'info');
+                
+                const response = await fetch('http://localhost:5000/sample-data', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('Sample data response:', result);
+
+                if (result.success && result.samples.length > 0) {
+                    const sampleData = result.samples[0];
+                    
+                    SENSORS.forEach(sensor => {
+                        const input = document.getElementById(sensor.name);
+                        if (sampleData[sensor.name] !== undefined) {
+                            input.value = sampleData[sensor.name];
+                        }
+                    });
+
+                    showInputStatus(`✅ Sample data loaded successfully! (${result.samples.length} records available)`, 'success');
+                } else {
+                    throw new Error(result.error || 'No sample data available');
+                }
+            } catch (error) {
+                console.error('Error loading sample data:', error);
+                
+                // Show detailed error message
+                let errorMessage = '❌ Unable to load sample data: ';
+                if (error.message.includes('fetch')) {
+                    errorMessage += 'Cannot connect to backend server. Is it running on localhost:5000?';
+                } else if (error.message.includes('CORS')) {
+                    errorMessage += 'CORS policy error. Backend connection blocked.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showInputStatus(errorMessage, 'error');
+                
+                // Load default sample data as fallback
+                setTimeout(() => {
+                    loadDefaultSampleData();
+                }, 2000);
+            }
+        }
+
+        // Test connection to backend
+        async function testConnection() {
+            showInputStatus('🔄 Testing connection to backend...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:5000/health', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('Health check result:', result);
+
+                if (result.status === 'healthy') {
+                    const modelStatus = result.model_loaded ? '✅ Loaded' : '❌ Not Loaded';
+                    const dataStatus = result.data_available ? '✅ Available' : '❌ Not Available';
+                    
+                    showInputStatus(
+                        `✅ Backend connected successfully!\nModel: ${modelStatus} | Data: ${dataStatus}`, 
+                        'success'
+                    );
+                } else {
+                    throw new Error('Backend health check failed');
+                }
+            } catch (error) {
+                console.error('Connection test failed:', error);
+                
+                let errorMsg = '❌ Connection failed: ';
+                if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+                    errorMsg += 'Cannot reach backend server at localhost:5000. Please ensure:\n';
+                    errorMsg += '1. Backend server is running (python app.py)\n';
+                    errorMsg += '2. Server is accessible at localhost:5000';
+                } else {
+                    errorMsg += error.message;
+                }
+                
+                showInputStatus(errorMsg, 'error');
+            }
+        }
+        function loadDefaultSampleData() {
+            const defaultSample = {
+                'Soil_Moisture': 25.5,
+                'Ambient_Temperature': 22.3,
+                'Soil_Temperature': 20.1,
+                'Humidity': 60.2,
+                'Light_Intensity': 450,
+                'Soil_pH': 6.5,
+                'Nitrogen_Level': 15.2,
+                'Phosphorus_Level': 25.8,
+                'Potassium_Level': 30.1,
+                'Chlorophyll_Content': 40.5,
+                'Electrochemical_Signal': 0.85
+            };
+
+            SENSORS.forEach(sensor => {
+                const input = document.getElementById(sensor.name);
+                input.value = defaultSample[sensor.name] || '';
+            });
+
+            showInputStatus('📝 Fallback: Default sample data loaded (backend not connected)', 'warning');
+        }
+
+        // Clear all inputs
+        function clearInputs() {
+            SENSORS.forEach(sensor => {
+                document.getElementById(sensor.name).value = '';
+            });
+            
+            document.getElementById('inputStatus').innerHTML = '';
+            document.getElementById('inputStatus').className = '';
+            document.getElementById('noResults').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+            
+            showInputStatus('🗑️ All inputs cleared', 'success');
+        }
+
+        // Analyze plant health
+        async function analyzePlant() {
+            const { data, hasData, missingFields } = collectSensorData();
+
+            if (!hasData) {
+                showInputStatus('❌ Please enter sensor data before analysis', 'error');
+                return;
+            }
+
+            if (missingFields.length > 0) {
+                showInputStatus(`⚠️ Missing data for: ${missingFields.join(', ')}. Analysis may be less accurate.`, 'warning');
+            }
+
+            // Validate data ranges
+            const warnings = validateSensorData(data);
+            if (warnings.length > 0) {
+                console.warn('Data validation warnings:', warnings);
+            }
+
+            analysisStartTime = Date.now();
+            showLoading();
+
+            try {
+                showInputStatus('🔄 Connecting to AI model...', 'info');
+                
+                const response = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'cors',
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('Prediction result:', result);
+
+                if (result.success) {
+                    displayResults(result);
+                    showInputStatus('✅ Analysis completed successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Analysis failed');
+                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                
+                let errorMessage = '❌ Analysis failed: ';
+                if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+                    errorMessage += 'Cannot connect to AI model. Is the backend server running?';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showInputStatus(errorMessage, 'error');
+                
+                // Show demo results for demonstration
+                setTimeout(() => {
+                    const demoResults = generateDemoResults(data);
+                    displayResults(demoResults);
+                    showInputStatus('🎭 Showing demo results (AI model not connected)', 'warning');
+                }, 1000);
+            }
+        }
+
+        // Show loading state
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+        }
+
+        // Generate demo results for offline mode
+        function generateDemoResults(sensorData) {
+            // Simple rule-based demo logic
+            let status = 'healthy';
+            let confidence = 85;
+            
+            if (sensorData.Soil_Moisture < 20 || sensorData.Soil_Moisture > 80) {
+                status = 'high_stress';
+                confidence = 75;
+            } else if (sensorData.Soil_pH < 6 || sensorData.Soil_pH > 8) {
+                status = 'moderate_stress';
+                confidence = 70;
+            }
+
+            const analysisTime = (Date.now() - analysisStartTime) / 1000;
+
+            return {
+                success: true,
+                prediction: {
+                    status: status,
+                    message: status === 'healthy' ? '🌱 Plant is Healthy' : 
+                             status === 'moderate_stress' ? '⚠️ Moderate Stress Detected' : 
+                             '🚨 High Stress Detected',
+                    description: 'Demo analysis based on simple rules',
+                    color_class: status === 'healthy' ? 'healthy' : 
+                                status === 'moderate_stress' ? 'warning' : 'diseased',
+                    confidence: confidence,
+                    risk_level: status === 'healthy' ? 'Low' : 
+                               status === 'moderate_stress' ? 'Medium' : 'High',
+                    priority: 'Demo'
+                },
+                recommendations: [
+                    'This is a demo analysis',
+                    'Connect to backend for real AI predictions',
+                    'Check sensor readings for anomalies'
+                ],
+                analysis_time: analysisTime.toFixed(2),
+                sensor_analysis: {
+                    input_data: sensorData,
+                    note: 'Demo mode - simplified analysis'
+                }
+            };
+        }
+
+        // Display analysis results
+        function displayResults(results) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+            document.getElementById('noResults').style.display = 'none';
+
+            const prediction = results.prediction;
+            
+            // Update main result card
+            const mainResult = document.getElementById('mainResult');
+            mainResult.className = `result-card priority-${prediction.priority?.toLowerCase() || 'normal'}`;
+            
+            const healthStatus = document.getElementById('healthStatus');
+            healthStatus.textContent = prediction.message;
+            healthStatus.className = `health-status ${prediction.color_class}`;
+
+            document.getElementById('statusDescription').textContent = prediction.description;
+
+            // Update confidence bar
+            const confidenceBar = document.getElementById('confidenceBar');
+            const confidenceText = document.getElementById('confidenceText');
+            setTimeout(() => {
+                confidenceBar.style.width = prediction.confidence + '%';
+                confidenceText.textContent = Math.round(prediction.confidence) + '%';
+            }, 300);
+
+            // Update stats
+            document.getElementById('healthScore').textContent = Math.round(prediction.confidence) + '%';
+            document.getElementById('riskLevel').textContent = prediction.risk_level;
+            document.getElementById('priority').textContent = prediction.priority || 'Normal';
+            document.getElementById('analysisTime').textContent = results.analysis_time + 's';
+
+            // Update sensor analysis
+            if (results.sensor_analysis) {
+                const analysisDiv = document.getElementById('sensorAnalysis');
+                const inputData = results.sensor_analysis.input_data;
+                
+                let analysisHtml = '<div style="font-size: 0.9rem;">';
+                Object.entries(inputData).forEach(([key, value]) => {
+                    const sensor = SENSORS.find(s => s.name === key);
+                    const unit = sensor ? sensor.unit : '';
+                    analysisHtml += `<div style="margin: 5px 0;"><strong>${key}:</strong> ${value}${unit}</div>`;
+                });
+                analysisHtml += '</div>';
+                
+                if (results.sensor_analysis.note) {
+                    analysisHtml += `<div style="margin-top: 10px; font-style: italic; color: #666;">${results.sensor_analysis.note}</div>`;
+                }
+                
+                analysisDiv.innerHTML = analysisHtml;
+            }
+
+            // Update recommendations
+            const recList = document.getElementById('recommendationsList');
+            recList.innerHTML = results.recommendations.map(rec => `<li>${rec}</li>`).join('');
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🌱 Plant Health Monitor loaded successfully!');
+            initializeSensorGrid();
+        });
+    </script>
+</body>
+</html>
